@@ -3,10 +3,7 @@ package com.learn.spring.aop;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,7 +17,7 @@ public class Pointcuts {
 	@Pointcut("@annotation(com.learn.spring.aop.monitor.TestAnnotation)")
 	public void annotationAdvice() {}
 
-	@Pointcut("bean(tradeServie)")
+	@Pointcut("bean(tradeService)")
 	public void beanAdvice() {
 
 	}
@@ -43,7 +40,8 @@ public class Pointcuts {
 
 	@Around("beanAdvice()")
 	public Object aroundBeanAdvice(ProceedingJoinPoint pjp) throws Throwable {
-
+		Object target = pjp.getTarget();
+		log.info(target.toString());
 		pjp.getSignature();
 		return pjp.proceed();
 	}
@@ -56,4 +54,5 @@ public class Pointcuts {
 		pjp.getTarget();
 		return pjp.proceed();
 	}
+
 }
