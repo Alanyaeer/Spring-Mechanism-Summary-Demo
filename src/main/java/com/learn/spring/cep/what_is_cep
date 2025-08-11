@@ -1,0 +1,2 @@
+Container Extension Points - 例如 BeanPostProcess
+https://docs.spring.io/spring-framework/reference/core/beans/factory-extension.html#beans-factory-programmatically-registering-beanpostprocessors

@@ -14,4 +14,8 @@ public class EntityCreatedEvent<T> extends ApplicationEvent implements Resolvabl
 	public ResolvableType getResolvableType() {
 		return ResolvableType.forClassWithGenerics(getClass(), ResolvableType.forInstance(getSource()));
 	}
+
+	public T test(){
+		return (T) getSource();
+	}
 }

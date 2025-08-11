@@ -1,15 +1,12 @@
 package com.learn.spring.aop.monitor;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 @Component
-public class AopTestAdviceTest {
-    @PostConstruct
-    public void init(){
-        adviceTypeAround("faefa");
-    }
+public class AopTestAdviceTest implements CommandLineRunner {
     public void adviceTypeAround(String args){
         System.out.println("adviceTypeAround");
     }
@@ -28,5 +25,10 @@ public class AopTestAdviceTest {
 
     public void adviceTypeAfterFinally(String args){
         System.out.println("adviceTypeAfterFinally");
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        adviceTypeAround("faefa");
     }
 }
