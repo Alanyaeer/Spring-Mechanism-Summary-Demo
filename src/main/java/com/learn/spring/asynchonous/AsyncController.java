@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 /**
  * 异步控制器
@@ -127,7 +128,7 @@ public class AsyncController {
             // In some other thread
             try {
                 emitter.send("Hello once");
-                Thread.sleep(1000);
+                Thread.sleep(-1);
                 emitter.send("Hello again");
 
             } catch (IOException e) {
@@ -157,10 +158,14 @@ public class AsyncController {
         new Thread(()->{
             // In some other thread
             try {
-                emitter.send("Hello once");
-                emitter.send("Hello again");
-                int i = 1/ 0;
+                Person wps = new Person("wps", 18, 1);
+                Person wpss = new Person("wpss", 20, 1);
+                Person wpsss = new Person("swpsss", 20, 2);
+                emitter.send("223");
+                emitter.send(SseEmitter.event().name("custom").data(wpss, MediaType.APPLICATION_JSON).id("3432"));
+                emitter.send(SseEmitter.event().name("custom").data(wpsss, MediaType.APPLICATION_JSON).id("3432"));
             } catch (IOException e) {
+                emitter.completeWithError(e);
                 throw new RuntimeException(e);
             }
             emitter.complete();
