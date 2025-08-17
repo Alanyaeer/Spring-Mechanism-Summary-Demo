@@ -10,4 +10,6 @@ import java.lang.annotation.Target;
 public @interface CustomKey {
     String value() default "";
     String [] keys() default {};
+
+    String keyExpression() default "";
 }

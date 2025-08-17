@@ -31,6 +31,8 @@ public class CustomKeyAspectHandler {
         Object[] args = joinPoint.getArgs();
         args[0] = fKey;
         String key = customProvider.handleCustomKey(customKey, signature.getMethod(), joinPoint.getArgs());
+        String resolveExpression =  customProvider.handleSpelExpression(customKey);
+        log.info("Spel解析之后的key为：{}", resolveExpression);
         log.info("处理后的key为： {}", key);
         return joinPoint.proceed(args);
     }

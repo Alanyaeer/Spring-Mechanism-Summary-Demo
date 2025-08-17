@@ -5,12 +5,15 @@ import com.learn.spring.custom.spelresolver.annotation.CustomKey;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.expression.MethodBasedEvaluationContext;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.common.TemplateParserContext;
 import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -28,12 +32,17 @@ import java.util.Objects;
 
 @Component
 @Slf4j
-public class CustomProvider {
+public class CustomProvider{
     private final ParameterNameDiscoverer parameterNameDiscoverer =  new DefaultParameterNameDiscoverer();
 
     private final StandardEvaluationContext standardEvaluationContext = new StandardEvaluationContext();
 
+    private final TemplateParserContext templateParserContext = new TemplateParserContext();
+
     private final ExpressionParser expression = new SpelExpressionParser();
+
+    @Resource
+    private BeanFactory beanFactory;
     public String handleCustomKey(CustomKey customKey, Method method, Object[] parameterValues) {
         String[] keys = customKey.keys();
         ArrayList<String> stringArrayList = new ArrayList<String>();
@@ -49,26 +58,23 @@ public class CustomProvider {
         return ObjectUtils.nullSafeToString(value);
     }
 
-    public List<String> handleCustomFieldKey(CustomFieldKey customFieldKey, ProceedingJoinPoint joinPoint, Integer index) {
+    public List<String> handleCustomFieldKey(CustomFieldKey annotation, ProceedingJoinPoint joinPoint) {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod();
         Object[] args = joinPoint.getArgs();
         String[] parameterNames = parameterNameDiscoverer.getParameterNames(method);
-        Parameter[] parameters = method.getParameters();
         StandardEvaluationContext standardEvaluationContext = new StandardEvaluationContext();
         for(int i = 0; i < parameterNames.length;++i){
             if(parameterNames[i] != null){
                 standardEvaluationContext.setVariable(parameterNames[i], args[i]);
             }
         }
-        String[] keys = customFieldKey.keys();
         List<String> resultList = new ArrayList<>();
-        for(int i = 0; i < parameterNames.length; ++i){
-            if(parameters[i].getAnnotation(CustomFieldKey.class) != null){
-                for (String key : keys) {
-                    String evaluateStr = expression.parseExpression(key).getValue(standardEvaluationContext, String.class);
-                    resultList.add(evaluateStr);
-                }
+        if(annotation != null){
+            String[] keys = annotation.keys();
+            for (String key : keys) {
+                String evaluateStr = expression.parseExpression(key).getValue(standardEvaluationContext, String.class);
+                resultList.add(evaluateStr);
             }
         }
         return resultList;
@@ -101,9 +107,24 @@ public class CustomProvider {
             Parameter parameter = parameters[i];
             if (parameter.getAnnotation(CustomFieldKey.class) != null) {
                 CustomFieldKey annotation = parameter.getAnnotation(CustomFieldKey.class);
-                list.addAll(handleCustomFieldKey(annotation, joinPoint, i));
+                list.addAll(handleCustomFieldKey(annotation, joinPoint));
             }
         }
         return StringUtils.collectionToDelimitedString(list, "", "-", "");
+    }
+
+    public String handleSpelExpression(CustomKey customKey) {
+        String keyExpression = customKey.keyExpression();
+        if(!StringUtils.hasText(keyExpression)){
+            return "";
+        }
+        Object value = expression.parseExpression(resolveSpelExpr(keyExpression), templateParserContext).getValue(String.class);
+        return ObjectUtils.nullSafeToString(value);
+    }
+
+    private String resolveSpelExpr(String spelExpr){
+        String resolveStr =  ((ConfigurableBeanFactory) beanFactory).resolveEmbeddedValue(spelExpr);
+        log.info("resolveStr {}", resolveStr);
+        return resolveStr;
     }
 }

@@ -26,7 +26,7 @@ public class CustomSpelController {
      * @return {@link String }
      */
     @GetMapping("/test")
-    @CustomKey(keys = {"#child.name", "#child.age"})
+    @CustomKey(keys = {"#child.name", "#child.age"}, keyExpression = "${spring.application.name:xxx}")
     public String test(@CustomFieldKey(keys = {"#child.name", "#child.age"}, fieldIndex = 1) String key,  @RequestBody Child child) {
         log.info("key: {}", key);
         return key;
